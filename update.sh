@@ -4,7 +4,6 @@ set -Eeuo pipefail
 defaultSuite='focal'
 minVersionAlpine='10.3'
 declare -A suites=(
-	[10.1]='bionic'
 	[10.2]='bionic'
 )
 declare -A dpkgArchToBashbrew=(
@@ -76,7 +75,7 @@ for version in "${versions[@]}"; do
 
 	backup='mariadb-backup'
 	if [[ "$version" < 10.3 ]]; then
-		# 10.1 and 10.2 have mariadb major version in the package name
+		# 10.2 has mariadb major version in the package name
 		backup="$backup-$version"
 	fi
 
@@ -90,8 +89,13 @@ for version in "${versions[@]}"; do
 		-e 's!%%ARCHES%%!'"$arches"'!g' \
 		"$version/Dockerfile"
 
+	if [ "$suite" = bionic ]
+	then
+		sed -i 's/libjemalloc2/libjemalloc1/' "$version/Dockerfile"
+	fi
+
 	case "$version" in
-		10.1 | 10.2 | 10.3 | 10.4) ;;
+		10.2 | 10.3 | 10.4) ;;
 		*) sed -i '/backwards compat/d' "$version/Dockerfile" ;;
 	esac
 
